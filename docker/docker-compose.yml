@@ -1,0 +1,65 @@
+version: '3.5'
+services:
+  watch_node:
+    image: "${IMAGE:-qtrade/csbuild/bitcoin:v18}"
+    # These command flags configure the daemon at runtime
+    command: [
+      "/home/docker/coinserverd",
+      "-datadir=/home/docker/data/"
+    ]
+    # stdin_open: true
+    ports:
+     - "20001:8332"
+    networks:
+      - network1
+    volumes:
+      - type: bind
+        # Mount a local directory to our persisted data
+        source: "${PV_ROOT:-~/bitcoin-pv/}"
+        # Target our data folder in the image we built
+        target: "/home/docker/data/"
+  
+  # If there is a wallet service, include it here. This section isn't used for BTC
+
+  # watch_wallet:
+  #   depends_on:
+  #     - watch_node
+  #   image: "${IMAGE:-qtrade/csbuild/bitcoin:v18}"
+  #   command:
+  #     ["/home/docker/wallet-rpc",
+  #      "--rpc-bind-ip", "0.0.0.0",
+  #      "--wallet-file", "/home/docker/data/watch_wallet/wallet_watchonly",
+  #      "--daemon-address", "watch_node:20001",
+  #      "--password", ""]
+  #   volumes:
+  #     - type: bind
+  #       source: "${PV_ROOT:-~/bitcoin-pv/watch_wallet/}"
+  #       target: "/home/docker/data/watch_wallet/"
+  #   ports:
+  #    - "20002:20002"
+  #   networks:
+  #     - network1
+
+  # If a node is needed for signing include it here. This section isn't used for BTC
+
+  # sign_node:
+  #   image: "${IMAGE:-qtrade/csbuild/bitcoin:v18}"
+  #   command: [
+  #     "/home/docker/coinserverd",
+  #     "-datadir", "/home/docker/data/"
+  #      "--offline"
+  #   ]
+  #   ports:
+  #    - "20003:8332"
+  #   networks:
+  #     - network1
+  #   # No volume mount is needed here, since no network data is stored
+
+  # If the signer needs access to a wallet service include it here.
+  # This section isn't used for BTC
+
+
+# Define a network to link our services
+networks:
+  network1:
+    driver: bridge
