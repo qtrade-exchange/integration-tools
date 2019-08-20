@@ -8,7 +8,7 @@ If your team can provide us with Docker and Docker compose files that meet our s
 
 For compiled code there should be two docker stages:
  1. The builder stage. This should include all necessary build dependencies and compile the binary files
- 2. The container image. This image should have binaries copied from the builder stage, and files necessary to run those binaries
+ 2. The container image. This image should have binaries copied from the builder stage, and all dependencies necessary to run those binaries
 
 The goal of the two stage system is to reduce image size and complexity by not having a bunch of extra packages and build artifacts. For uncompiled languages the two-step process step isn't necessary
 
@@ -18,6 +18,7 @@ The goal of the two stage system is to reduce image size and complexity by not h
  - Blockchain data, wallets, and all data persisted between restarts needs to be in a single root directory (`/home/docker/data`). Binaries and other files that don't change should be below this directory. This allows easily mounting a volume for persisted data
  - Node/wallet should be able to run in an 'offline' mode and still perform signing/transaction creation/etc.
  - A good system for automatically loading wallets/keys into the container is a plus
+ - Ideally caching would be reasonably optimized. Build steps that change more often should be as late as possible, while core dependencies should be setup first. See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#leverage-build-cache for more information.
 
 ## Docker compose:
 
