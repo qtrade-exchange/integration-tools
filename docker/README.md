@@ -1,10 +1,34 @@
-# Operationalizing your software
+# Why Docker & Docker Compose
 
 qTrade containerizes all node and wallet software we run. This has many advantages regarding easily building/running/deploying/securing software developed by third parties, which are often developed in different environments.
 
-If your team can provide us with Docker and Docker compose files that meet our specifications this can greatly speed up our listing process, and therefore means we're more likely to list your coin.
+If your team can provide us with Docker and Docker compose files that save us time, this can greatly speed up our listing process, and therefore means we're more likely to be able to list your coin.
 
-## Dockerfile:
+## Notes about substantial time saving components
+
+It is fairly unlikely we will be able to use your Docker/compose files as-is, due to our security requirements and architecture differences. The main advantage they provide us is the ability to rapidly create our own instead of starting from scratch. Here are a few of the biggest areas we can save time by looking at your docker setup:
+
+### Configuration management
+
+We handle configuration entirely through environment variables, but rarely does node or wallet software support this. Typically they are designed to run from a config file. There are many ways to handle this, but here are a couple of the ways we've used:
+
+ - Modify node/wallet software to accept config variables as runtime arguments
+ - Run an entrypoint script that pulls environment variables and updates a config file before starting the node software
+
+### Data persistance
+
+We only want to mount one persisted volume per node, and this is typically best accomplished by placing all data that needs to be persisted in a single (configurable) folder. Considerable maintenance issues can be caused if the node generates stateful files outside that directory
+
+### Key/Wallet loading (extra credit)
+
+We often have a single seed/key that is used to generate an account, or derive user addresses, and this may be passed in via an environment variable. If there is wallet software bundled it would ideally use this key to bootstrap a wallet file, or import the key (as appropriate). This step reduces the burden on our integration software to maintain the wallet state.
+
+
+# Operationalizing your software
+
+Now that we've covered the biggest time saving features we're looking for, lets discuss some design decisions for building your own Dockerfile and Docker Compose setup, what that might actually look like, and why we think these are good ideas.
+
+## Dockerfile suggestions:
 
 For compiled code there should be two docker stages:
  1. The builder stage. This should include all necessary build dependencies and compile the binary files
@@ -20,7 +44,7 @@ The goal of the two stage system is to reduce image size and complexity by not h
  - A good system for automatically loading wallets/keys into the container is a plus
  - Ideally caching would be reasonably optimized. Build steps that change more often should be as late as possible, while core dependencies should be setup first. See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#leverage-build-cache for more information.
 
-## Docker compose:
+## Docker compose suggestions:
 
 Our system requires that secret keys be network isolated, and in practice this means there are two main peices of software we run.
 
